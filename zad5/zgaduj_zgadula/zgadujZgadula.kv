@@ -1,0 +1,212 @@
+#:kivy 2.1.0
+
+<Button>:
+    font_size: 18
+
+<ClefSelection>:
+    GridLayout:
+        size: self.parent.size
+        pos: self.parent.pos
+
+        canvas:
+            Color:
+                rgb: .1, .1, .1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        cols: 2
+        Label:
+            text: "Klucz"
+            font_size: 20
+            size_hint_x: None
+            width: self.parent.width * 0.3
+        AnchorLayout:
+            canvas:
+                Color:
+                    rgb: .15, .15, .15
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            GridLayout:
+                cols: 3
+                anchor_y: "center"
+                size_hint_y: 0.5
+                ToggleButton:
+                    id: g_clef_bt
+                    text: "Wiolinowy"
+                    group: "clef"
+                    state: "down"
+                ToggleButton:
+                    id: f_clef_bt
+                    text: "Basowy"
+                    group: "clef"
+                ToggleButton:
+                    id: all_clefs_bt
+                    text: "Wiolinowy i basowy"
+                    group: "clef"
+
+<Options>:
+    clef_selection: clef_selection
+
+    GridLayout:
+        cols: 1
+        size: self.parent.size
+        pos: self.parent.pos
+
+        ClefSelection:
+            id: clef_selection
+        AnchorLayout:
+            canvas:
+                Color:
+                    rgb: .05, .05, .05
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            ToggleButton:
+                id: rl_bt
+                text: "Reinforcement Learning"
+                anchor_x: "center"
+                anchor_y: "center"
+                size_hint: (.3, .3)
+
+<MenuScreen>:
+    options: options
+
+    BoxLayout:
+        orientation: "vertical"
+        size: self.parent.size
+        pos: self.parent.pos
+        Label:
+            text: "ZGADUJ ZGADULA"
+            size_hint_y: 2
+            font_size: 48
+            font_name: "rage"
+        Options:
+            id: options
+            size_hint_y: 5
+        AnchorLayout:
+            size_hint_y: 1
+            Button:
+                text: "Dalej"
+                anchor_x: "center"
+                anchor_y: "center"
+                size_hint: (.3, .5)
+                on_press: root.go_to_next_panel()
+
+
+<AnswerButton@ToggleButton>:
+    group: "answer"
+
+<AnswersPanel>:
+    GridLayout:
+        size: self.parent.size
+        pos: self.parent.pos
+
+        cols: 4
+        padding: 30
+        AnswerButton:
+            id: b1
+        AnswerButton:
+            id: b2
+        AnswerButton:
+            id: b3
+        AnswerButton:
+            id: b4
+
+
+<GameScreen>:
+    answers_panel: answers_panel
+
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: title
+            text: "JAKA TO NUTKA?"
+            font_size: 40
+            font_name: "rage"
+        Label:
+            id: feedback
+            text: "Zaznacz prawidłową odpowiedź"
+            font_size: 20
+            size_hint_y: 0.5
+        FloatLayout:
+            size: self.parent.size
+            pos: self.parent.pos
+            size_hint_y: 2
+            Image:
+                id: note_img
+                source: root.get_image()
+                pos: self.parent.pos
+        AnswersPanel:
+            id: answers_panel
+        GridLayout:
+            cols: 3
+            Label:
+                id: score_label
+                text: root.get_score_label()
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                Button:
+                    id: check_button
+                    size_hint: [None, None]
+                    size: (self.parent.width * 0.5, self.parent.height * 0.5)
+                    text: root.get_check_button_label()
+                    on_release: root.get_check_button_callback()
+            AnchorLayout:
+                anchor_x: "right"
+                anchor_y: "center"
+                padding: 30
+                Button:
+                    text: "Koniec"
+                    size_hint: [None, None]
+                    size: (self.parent.width * 0.5, self.parent.height * 0.5)
+                    on_press: root.manager.current = 'end'
+
+
+<EndScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        AnchorLayout:
+            anchor_x: "center"
+            anchor_y: "center"
+            size_hint_y: 3
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: (.5, .5)
+                Label:
+                    text: "Twój wynik to:"
+                    font_size: 40
+                    font_name: "rage"
+                Label:
+                    id: score_label
+                    text: root.get_score_label()
+                    font_size: 40
+                    font_name: "rage"
+                Label:
+                    text: "Gratulacje!"
+                    font_size: 40
+                    font_name: "rage"
+        BoxLayout:
+            size: self.parent.size
+            pos: self.parent.size
+            Button:
+                id: save_button
+                text: "Zapisz wynik"
+                size_hint: (.5, .5)
+                on_press: root.save_results()
+            Button:
+                text: "Spróbuj jeszcze raz!"
+                size_hint: (.5, .5)
+                on_press: root.manager.current = 'menu'
+
+<ZgadujZgadulaScreen>:
+    canvas:
+        Color:
+            rgb: .35, .15, .25
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ZgadujZgadulaManager>:
