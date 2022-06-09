@@ -14,7 +14,6 @@ from pathlib import Path
 from os.path import join
 
 
-
 def format_date(datetime: datetime):
     return f"{datetime.strftime('%Y_%m_%dT%H_%M_%S')}"
 
@@ -81,6 +80,7 @@ class AnswersPanel(Widget):
         buttons, answers = self.get_buttons(), game.all_answers
         for bt, ans in zip(buttons, answers):
             bt.text = ans
+            bt.state = "normal"
 
 
 class GameScreen(Screen):
@@ -102,10 +102,12 @@ class GameScreen(Screen):
     def get_check_button_callback(self):
         return self.initialize_new_round if self.game.is_last_answer_correct() else self.check_answer
 
-    def get_feedback_label(self):
+    def get_feedback_label(self):  # For this kind of spaghetti devs go to hell
         if self.game.last_chosen is None:
             return "Zaznacz prawidłową odpowiedź"
         elif self.game.is_last_answer_correct():
+            if self.game.should_add_active_notes():
+                return "LEVEL UP! Dostajesz nowe nutki do rozpoznania. Czy sprostasz wyzwaniu?"
             return "GRATULACJE! Odgadłeś prawidłowo nutkę\n" \
                    "Naciśnij przycisk 'Jeszcze raz', aby spróbować ponownie"
         else:

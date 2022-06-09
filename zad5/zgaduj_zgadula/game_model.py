@@ -1,5 +1,8 @@
+from rlmodel import RlModel
+
 from random import choice, sample
 import json
+
 
 class GameModel:
     g_clef_notes = ["a", "h",
@@ -11,7 +14,8 @@ class GameModel:
 
     def __init__(self):
         self._score = 0
-        self._score_history = []
+        self._score_history = [0]
+        self._good_guesses_in_row = 0
 
         self._correct_answer = ""
         self._all_answers = []
@@ -20,6 +24,7 @@ class GameModel:
         self._current_clef = "g_clef"
         self._possible_clefs = ["g_clef", "f_clef"]
         self._question_pick_method = "random"
+        self._rl_model: RlModel = None
 
         self._observers = []
 
@@ -66,27 +71,51 @@ class GameModel:
         self._last_chosen = val
         self.notify_observers()
 
+    def _init_rl_model(self):
+        notes_dict = {}
+        if "f_clef" in self._possible_clefs:
+            notes_dict["f_clef"] = GameModel.f_clef_notes
+        if "g_clef" in self._possible_clefs:
+            notes_dict["g_clef"] = GameModel.g_clef_notes
+        return RlModel(notes_dict)
+
     def set_game_config(self, possible_clefs, is_rl_picked):
         self._possible_clefs = possible_clefs
-        self._question_pick_method = "rl" if is_rl_picked else "random"
+        if is_rl_picked:
+            self._question_pick_method = "rl"
+            self._rl_model = self._init_rl_model()
+        else:
+            self._question_pick_method = "random"
+
+    def clear_game_data(self):
+        self._score = 0
+        self._score_history = [0]
+        self._good_guesses_in_row = 0
 
     def increment_score(self):
         self.score = self._score + 1
+        self._good_guesses_in_row += 1
 
     def decrement_score(self):
         self.score = self._score - 1
+        self._good_guesses_in_row = 0
 
-    def _get_random_notes(self):
-        clef = self._current_clef
+    def _get_random_notes(self, clef):
         if clef == "g_clef":
             return sample(self.g_clef_notes, 4)
         elif clef == "f_clef":
             return sample(self.f_clef_notes, 4)
 
+    def select_random_notes(self):
+        clef = choice(self._possible_clefs)
+        all_notes = self._get_random_notes(clef)
+        return choice(all_notes), all_notes, clef
+
     def initialize_round(self):
-        self._current_clef = choice(self._possible_clefs)
-        self._all_answers = self._get_random_notes()   # TODO add possibility of RL choosing
-        self._correct_answer = choice(self._all_answers)
+        self._correct_answer, self._all_answers, self._current_clef = \
+            self._rl_model.select_notes() \
+                if self._question_pick_method == "rl" \
+                else self.select_random_notes()  # where is inheritance when I need it?
         self._last_chosen = None
         self.notify_observers()
 
@@ -96,6 +125,16 @@ class GameModel:
             self.increment_score()
         else:
             self.decrement_score()
+
+        if self._rl_model:
+            self._rl_model.update_val(note, self.is_last_answer_correct())
+        if self.should_add_active_notes():
+            self._rl_model.add_active_notes()
+            self.notify_observers()
+            self._good_guesses_in_row = 0
+
+    def should_add_active_notes(self):
+        return self._rl_model and self._good_guesses_in_row == 5
 
     def is_last_answer_correct(self):
         return self.last_chosen == self.correct_answer

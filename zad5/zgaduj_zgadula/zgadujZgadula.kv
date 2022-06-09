@@ -199,7 +199,9 @@
             Button:
                 text: "Spróbuj jeszcze raz!"
                 size_hint: (.5, .5)
-                on_press: root.manager.current = 'menu'
+                on_press:
+                    root.game.clear_game_data()
+                    root.manager.current = 'menu'
 
 <ZgadujZgadulaScreen>:
     canvas:
