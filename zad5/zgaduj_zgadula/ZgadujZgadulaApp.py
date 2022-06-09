@@ -118,7 +118,7 @@ class GameScreen(Screen):
 
     def check_answer(self):
         selected_note = self.answers_panel.get_selected_note()
-        self.game.check_answer(selected_note)
+        self.game.check_if_not_none(selected_note)
 
     def initialize_new_round(self):
         self.game.initialize_round()
